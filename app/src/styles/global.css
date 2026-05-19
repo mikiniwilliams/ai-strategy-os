@@ -372,6 +372,24 @@ td {
   overflow-x: auto;
 }
 
+.saved-engagements {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.saved-engagement-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.saved-engagement-row p {
+  margin: 0.35rem 0 0;
+}
+
 .roadmap-card {
   padding: 1rem;
   display: grid;
@@ -413,7 +431,8 @@ td {
 
   .topbar,
   .split-row,
-  .dimension-row {
+  .dimension-row,
+  .saved-engagement-row {
     flex-direction: column;
   }
 

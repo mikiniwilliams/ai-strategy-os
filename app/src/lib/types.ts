@@ -67,3 +67,14 @@ export interface AppState {
   roadmap: RoadmapItem[];
   exportSummary: ExportSummary | null;
 }
+
+export interface SavedEngagementSummary {
+  id: string;
+  projectName: string;
+  clientName: string;
+  sponsor: string;
+  industry: string;
+  status: string;
+  updatedAt: string;
+  createdAt: string;
+}

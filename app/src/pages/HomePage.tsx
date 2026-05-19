@@ -1,12 +1,22 @@
 import { Link } from "react-router-dom";
 import { MetricCard } from "../components/MetricCard";
-import type { AppState } from "../lib/types";
+import type { AppState, SavedEngagementSummary } from "../lib/types";
 
 interface HomePageProps {
   state: AppState;
+  savedEngagements: SavedEngagementSummary[];
+  onLoadEngagement: (id: string) => void;
+  cloudEnabled: boolean;
+  isLoadingSavedEngagements: boolean;
 }
 
-export function HomePage({ state }: HomePageProps) {
+export function HomePage({
+  state,
+  savedEngagements,
+  onLoadEngagement,
+  cloudEnabled,
+  isLoadingSavedEngagements
+}: HomePageProps) {
   const completedSteps = [
     state.engagement ? "Engagement created" : null,
     state.discovery.businessGoal ? "Discovery captured" : null,
@@ -81,6 +91,51 @@ export function HomePage({ state }: HomePageProps) {
           </dl>
         </article>
       </div>
+
+      <article className="panel">
+        <div className="split-row">
+          <div>
+            <h3>Saved engagements</h3>
+            <p>
+              {cloudEnabled
+                ? "Supabase-backed engagement snapshots can be loaded across devices."
+                : "Add Supabase env vars to unlock cloud-saved engagements."}
+            </p>
+          </div>
+        </div>
+
+        {!cloudEnabled ? (
+          <p className="form-note">
+            Configure `VITE_SUPABASE_URL` and either `VITE_SUPABASE_PUBLISHABLE_KEY` or
+            `VITE_SUPABASE_ANON_KEY` to enable cloud persistence.
+          </p>
+        ) : isLoadingSavedEngagements ? (
+          <p className="form-note">Loading saved engagements…</p>
+        ) : savedEngagements.length ? (
+          <div className="saved-engagements">
+            {savedEngagements.map((engagement) => (
+              <div className="saved-engagement-row" key={engagement.id}>
+                <div>
+                  <strong>{engagement.projectName}</strong>
+                  <p>
+                    {engagement.clientName} · {engagement.status} · Updated{" "}
+                    {new Date(engagement.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <button
+                  className="button button-secondary"
+                  onClick={() => onLoadEngagement(engagement.id)}
+                  type="button"
+                >
+                  Load
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="form-note">No saved engagements yet. Create one and it will sync automatically.</p>
+        )}
+      </article>
     </section>
   );
 }
