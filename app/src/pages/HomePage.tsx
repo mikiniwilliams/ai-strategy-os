@@ -64,7 +64,7 @@ export function HomePage({
         <MetricCard
           label="Current progress"
           value={`${completedSteps.length}/6`}
-          detail="Local progress is persisted in the browser for this MVP."
+          detail={cloudEnabled ? "Progress syncs to Supabase when available, with local fallback." : "Progress is stored locally until Supabase is enabled."}
         />
       </div>
 
@@ -107,7 +107,7 @@ export function HomePage({
             <h3>Saved engagements</h3>
             <p>
               {cloudEnabled
-                ? "Supabase-backed engagement snapshots are protected by user authentication and row-level access."
+                ? "Supabase-backed workflow records are protected by user authentication and row-level access."
                 : "Add Supabase env vars to unlock cloud-saved engagements."}
             </p>
           </div>

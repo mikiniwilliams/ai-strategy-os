@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { AIAssistPanel } from "../components/AIAssistPanel";
+import type { AIArtifactRecord, DiscoverySummaryArtifact } from "../lib/aiTypes";
+import { useEffect, useState } from "react";
 import { Field } from "../components/Field";
 import { PageHeader } from "../components/PageHeader";
 import type { DiscoveryForm } from "../lib/types";
@@ -6,11 +8,30 @@ import type { DiscoveryForm } from "../lib/types";
 interface DiscoveryPageProps {
   discovery: DiscoveryForm;
   onSave: (discovery: DiscoveryForm) => void;
+  aiArtifact?: AIArtifactRecord<DiscoverySummaryArtifact>;
+  isAiLoading: boolean;
+  aiError: string;
+  onGenerateAi: () => void;
+  onAcceptAi: () => void;
+  onEditAi: (artifact: DiscoverySummaryArtifact) => void;
 }
 
-export function DiscoveryPage({ discovery, onSave }: DiscoveryPageProps) {
+export function DiscoveryPage({
+  discovery,
+  onSave,
+  aiArtifact,
+  isAiLoading,
+  aiError,
+  onGenerateAi,
+  onAcceptAi,
+  onEditAi
+}: DiscoveryPageProps) {
   const [form, setForm] = useState(discovery);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setForm(discovery);
+  }, [discovery]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -132,6 +153,16 @@ export function DiscoveryPage({ discovery, onSave }: DiscoveryPageProps) {
           </button>
         </div>
       </form>
+
+      <AIAssistPanel
+        artifact={aiArtifact}
+        kindLabel="AI discovery summary"
+        isLoading={isAiLoading}
+        error={aiError}
+        onGenerate={onGenerateAi}
+        onAccept={onAcceptAi}
+        onEdit={onEditAi}
+      />
     </section>
   );
 }

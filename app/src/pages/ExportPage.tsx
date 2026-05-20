@@ -1,14 +1,32 @@
 import { useMemo, useState } from "react";
+import { AIAssistPanel } from "../components/AIAssistPanel";
 import { PageHeader } from "../components/PageHeader";
+import type { AIArtifactRecord, ExportExecutiveSummaryArtifact } from "../lib/aiTypes";
 import type { ExportSummary } from "../lib/types";
 
 interface ExportPageProps {
   exportSummary: ExportSummary | null;
   onRegenerate: () => void;
   onUpdate: (summary: ExportSummary) => void;
+  aiArtifact?: AIArtifactRecord<ExportExecutiveSummaryArtifact>;
+  isAiLoading: boolean;
+  aiError: string;
+  onGenerateAi: () => void;
+  onAcceptAi: () => void;
+  onEditAi: (artifact: ExportExecutiveSummaryArtifact) => void;
 }
 
-export function ExportPage({ exportSummary, onRegenerate, onUpdate }: ExportPageProps) {
+export function ExportPage({
+  exportSummary,
+  onRegenerate,
+  onUpdate,
+  aiArtifact,
+  isAiLoading,
+  aiError,
+  onGenerateAi,
+  onAcceptAi,
+  onEditAi
+}: ExportPageProps) {
   const [status, setStatus] = useState("");
 
   const filename = useMemo(() => {
@@ -90,6 +108,16 @@ export function ExportPage({ exportSummary, onRegenerate, onUpdate }: ExportPage
 
         {status ? <p className="form-note">{status}</p> : null}
       </article>
+
+      <AIAssistPanel
+        artifact={aiArtifact}
+        kindLabel="AI executive summary"
+        isLoading={isAiLoading}
+        error={aiError}
+        onGenerate={onGenerateAi}
+        onAccept={onAcceptAi}
+        onEdit={onEditAi}
+      />
     </section>
   );
 }

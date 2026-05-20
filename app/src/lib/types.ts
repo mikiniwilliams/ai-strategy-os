@@ -1,3 +1,5 @@
+import type { AIArtifactsState } from "./aiTypes";
+
 export interface Engagement {
   id: string;
   projectName: string;
@@ -66,6 +68,7 @@ export interface AppState {
   useCases: UseCase[];
   roadmap: RoadmapItem[];
   exportSummary: ExportSummary | null;
+  aiArtifacts: AIArtifactsState;
 }
 
 export interface SavedEngagementSummary {

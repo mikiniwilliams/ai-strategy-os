@@ -1,13 +1,31 @@
+import { AIAssistPanel } from "../components/AIAssistPanel";
 import { PageHeader } from "../components/PageHeader";
+import type { AIArtifactRecord, ReadinessNarrativeArtifact } from "../lib/aiTypes";
 import type { ReadinessAssessment } from "../lib/types";
 
 interface ReadinessPageProps {
   readiness: ReadinessAssessment | null;
   onRegenerate: () => void;
   onUpdate: (assessment: ReadinessAssessment) => void;
+  aiArtifact?: AIArtifactRecord<ReadinessNarrativeArtifact>;
+  isAiLoading: boolean;
+  aiError: string;
+  onGenerateAi: () => void;
+  onAcceptAi: () => void;
+  onEditAi: (artifact: ReadinessNarrativeArtifact) => void;
 }
 
-export function ReadinessPage({ readiness, onRegenerate, onUpdate }: ReadinessPageProps) {
+export function ReadinessPage({
+  readiness,
+  onRegenerate,
+  onUpdate,
+  aiArtifact,
+  isAiLoading,
+  aiError,
+  onGenerateAi,
+  onAcceptAi,
+  onEditAi
+}: ReadinessPageProps) {
   if (!readiness) {
     return (
       <section>
@@ -98,6 +116,16 @@ export function ReadinessPage({ readiness, onRegenerate, onUpdate }: ReadinessPa
           />
         </label>
       </article>
+
+      <AIAssistPanel
+        artifact={aiArtifact}
+        kindLabel="AI readiness narrative"
+        isLoading={isAiLoading}
+        error={aiError}
+        onGenerate={onGenerateAi}
+        onAccept={onAcceptAi}
+        onEdit={onEditAi}
+      />
     </section>
   );
 }

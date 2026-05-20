@@ -19,5 +19,6 @@ export const initialState: AppState = {
   readiness: null,
   useCases: [],
   roadmap: [],
-  exportSummary: null
+  exportSummary: null,
+  aiArtifacts: {}
 };

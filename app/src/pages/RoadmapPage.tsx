@@ -1,13 +1,31 @@
+import { AIAssistPanel } from "../components/AIAssistPanel";
 import { PageHeader } from "../components/PageHeader";
+import type { AIArtifactRecord, RoadmapDraftArtifact } from "../lib/aiTypes";
 import type { RoadmapItem } from "../lib/types";
 
 interface RoadmapPageProps {
   roadmap: RoadmapItem[];
   onRegenerate: () => void;
   onUpdate: (roadmap: RoadmapItem[]) => void;
+  aiArtifact?: AIArtifactRecord<RoadmapDraftArtifact>;
+  isAiLoading: boolean;
+  aiError: string;
+  onGenerateAi: () => void;
+  onAcceptAi: () => void;
+  onEditAi: (artifact: RoadmapDraftArtifact) => void;
 }
 
-export function RoadmapPage({ roadmap, onRegenerate, onUpdate }: RoadmapPageProps) {
+export function RoadmapPage({
+  roadmap,
+  onRegenerate,
+  onUpdate,
+  aiArtifact,
+  isAiLoading,
+  aiError,
+  onGenerateAi,
+  onAcceptAi,
+  onEditAi
+}: RoadmapPageProps) {
   if (!roadmap.length) {
     return (
       <section>
@@ -67,6 +85,16 @@ export function RoadmapPage({ roadmap, onRegenerate, onUpdate }: RoadmapPageProp
           </div>
         ))}
       </article>
+
+      <AIAssistPanel
+        artifact={aiArtifact}
+        kindLabel="AI roadmap draft"
+        isLoading={isAiLoading}
+        error={aiError}
+        onGenerate={onGenerateAi}
+        onAccept={onAcceptAi}
+        onEdit={onEditAi}
+      />
     </section>
   );
 }

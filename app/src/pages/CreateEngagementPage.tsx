@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { Field } from "../components/Field";
 import type { Engagement } from "../lib/types";
@@ -22,6 +22,12 @@ export function CreateEngagementPage({ engagement, onSave }: CreateEngagementPag
     }
   );
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (engagement) {
+      setForm(engagement);
+    }
+  }, [engagement]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

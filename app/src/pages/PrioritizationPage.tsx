@@ -1,13 +1,31 @@
+import { AIAssistPanel } from "../components/AIAssistPanel";
 import { PageHeader } from "../components/PageHeader";
+import type { AIArtifactRecord, UseCaseAssistantArtifact } from "../lib/aiTypes";
 import type { UseCase } from "../lib/types";
 
 interface PrioritizationPageProps {
   useCases: UseCase[];
   onRegenerate: () => void;
   onUpdate: (useCases: UseCase[]) => void;
+  aiArtifact?: AIArtifactRecord<UseCaseAssistantArtifact>;
+  isAiLoading: boolean;
+  aiError: string;
+  onGenerateAi: () => void;
+  onAcceptAi: () => void;
+  onEditAi: (artifact: UseCaseAssistantArtifact) => void;
 }
 
-export function PrioritizationPage({ useCases, onRegenerate, onUpdate }: PrioritizationPageProps) {
+export function PrioritizationPage({
+  useCases,
+  onRegenerate,
+  onUpdate,
+  aiArtifact,
+  isAiLoading,
+  aiError,
+  onGenerateAi,
+  onAcceptAi,
+  onEditAi
+}: PrioritizationPageProps) {
   if (!useCases.length) {
     return (
       <section>
@@ -109,6 +127,16 @@ export function PrioritizationPage({ useCases, onRegenerate, onUpdate }: Priorit
           </table>
         </div>
       </article>
+
+      <AIAssistPanel
+        artifact={aiArtifact}
+        kindLabel="AI use-case assistant"
+        isLoading={isAiLoading}
+        error={aiError}
+        onGenerate={onGenerateAi}
+        onAccept={onAcceptAi}
+        onEdit={onEditAi}
+      />
     </section>
   );
 }

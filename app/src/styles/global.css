@@ -259,6 +259,25 @@ td {
   padding: 1.4rem;
 }
 
+.ai-panel {
+  margin-top: 1rem;
+}
+
+.ai-edit-surface,
+.ai-object-grid,
+.ai-list-block {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.ai-object-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.ai-list-block textarea {
+  min-height: 88px;
+}
+
 .metric-card span {
   display: block;
   color: var(--text-muted);
