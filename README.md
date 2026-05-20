@@ -70,14 +70,15 @@ Run the SQL in [docs/supabase/schema.sql](/Users/mikiniwilliams/Documents/Codex/
 That script creates:
 
 - an `engagements` table
+- a `user_id` ownership column linked to `auth.users`
 - an `updated_at` trigger
-- MVP read/insert/update policies for the `anon` role
+- authenticated per-user read/insert/update policies
 
 Important note:
 
-- The included policies are intentionally lightweight for MVP speed and demoability.
-- They are not the right long-term security model for sensitive or multi-user client data.
-- The next production step should be Supabase Auth plus user-scoped RLS policies.
+- Cloud persistence now expects Supabase Auth to be enabled.
+- The app uses email magic links for the MVP sign-in flow.
+- In Supabase Auth settings, make sure your site URL and redirect URLs include your Vercel app URL.
 
 ## Build and test
 
@@ -108,14 +109,13 @@ README.md
 ## Product notes
 
 - The MVP stores everything in `localStorage` and intentionally avoids backend complexity.
-- When Supabase env vars are present, the app also syncs engagement snapshots to Supabase and can reload saved engagements from the homepage.
+- When Supabase env vars are present, the app can sync engagement snapshots to Supabase after the user signs in with a magic link.
 - Generated outputs remain editable on the readiness, prioritization, roadmap, and export screens.
 - Regenerating an upstream step clears downstream outputs so the consultant can re-run the flow cleanly.
 
 ## Production gaps
 
-- No authentication or user accounts
-- No secure user-scoped Supabase policies yet
+- No role-based permissions beyond per-user ownership yet
 - No PDF export or branded document generation
 - No analytics, audit logs, or enterprise governance controls
 - No API-driven AI generation yet; current scoring and roadmap logic is rules-based for inspectability

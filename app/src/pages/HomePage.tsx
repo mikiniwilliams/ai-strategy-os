@@ -1,6 +1,7 @@
+import { AuthPanel } from "../components/AuthPanel";
 import { Link } from "react-router-dom";
 import { MetricCard } from "../components/MetricCard";
-import type { AppState, SavedEngagementSummary } from "../lib/types";
+import type { AppState, AuthStatus, SavedEngagementSummary } from "../lib/types";
 
 interface HomePageProps {
   state: AppState;
@@ -8,6 +9,9 @@ interface HomePageProps {
   onLoadEngagement: (id: string) => void;
   cloudEnabled: boolean;
   isLoadingSavedEngagements: boolean;
+  auth: AuthStatus;
+  onSignIn: (email: string) => Promise<void>;
+  onSignOut: () => Promise<void>;
 }
 
 export function HomePage({
@@ -15,7 +19,10 @@ export function HomePage({
   savedEngagements,
   onLoadEngagement,
   cloudEnabled,
-  isLoadingSavedEngagements
+  isLoadingSavedEngagements,
+  auth,
+  onSignIn,
+  onSignOut
 }: HomePageProps) {
   const completedSteps = [
     state.engagement ? "Engagement created" : null,
@@ -92,13 +99,15 @@ export function HomePage({
         </article>
       </div>
 
+      {cloudEnabled ? <AuthPanel auth={auth} onSignIn={onSignIn} onSignOut={onSignOut} /> : null}
+
       <article className="panel">
         <div className="split-row">
           <div>
             <h3>Saved engagements</h3>
             <p>
               {cloudEnabled
-                ? "Supabase-backed engagement snapshots can be loaded across devices."
+                ? "Supabase-backed engagement snapshots are protected by user authentication and row-level access."
                 : "Add Supabase env vars to unlock cloud-saved engagements."}
             </p>
           </div>
@@ -109,6 +118,8 @@ export function HomePage({
             Configure `VITE_SUPABASE_URL` and either `VITE_SUPABASE_PUBLISHABLE_KEY` or
             `VITE_SUPABASE_ANON_KEY` to enable cloud persistence.
           </p>
+        ) : !auth.isAuthenticated ? (
+          <p className="form-note">Sign in above to view and load your cloud-saved engagements.</p>
         ) : isLoadingSavedEngagements ? (
           <p className="form-note">Loading saved engagements…</p>
         ) : savedEngagements.length ? (

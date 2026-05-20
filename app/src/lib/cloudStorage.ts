@@ -6,6 +6,7 @@ const TABLE_NAME = "engagements";
 
 interface EngagementRow {
   id: string;
+  user_id: string;
   project_name: string;
   client_name: string;
   sponsor: string;
@@ -29,9 +30,10 @@ function buildSummary(row: EngagementRow): SavedEngagementSummary {
   };
 }
 
-function buildRow(engagement: Engagement, state: AppState) {
+function buildRow(userId: string, engagement: Engagement, state: AppState) {
   return {
     id: engagement.id,
+    user_id: userId,
     project_name: engagement.projectName,
     client_name: engagement.clientName,
     sponsor: engagement.sponsor,
@@ -47,9 +49,17 @@ export async function listSavedEngagements(): Promise<SavedEngagementSummary[]> 
     return [];
   }
 
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from(TABLE_NAME)
-    .select("id, project_name, client_name, sponsor, industry, status, updated_at, created_at")
+    .select("id, user_id, project_name, client_name, sponsor, industry, status, updated_at, created_at")
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -61,6 +71,14 @@ export async function listSavedEngagements(): Promise<SavedEngagementSummary[]> 
 
 export async function loadSavedEngagement(id: string): Promise<AppState | null> {
   if (!isSupabaseConfigured || !supabase) {
+    return null;
+  }
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
     return null;
   }
 
@@ -82,7 +100,15 @@ export async function upsertSavedEngagement(state: AppState) {
     return;
   }
 
-  const { error } = await supabase.from(TABLE_NAME).upsert(buildRow(state.engagement, state), {
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return;
+  }
+
+  const { error } = await supabase.from(TABLE_NAME).upsert(buildRow(user.id, state.engagement, state), {
     onConflict: "id"
   });
 

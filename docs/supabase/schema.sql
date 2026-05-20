@@ -1,5 +1,6 @@
 create table if not exists public.engagements (
   id uuid primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
   project_name text not null,
   client_name text not null,
   sponsor text not null,
@@ -29,26 +30,26 @@ execute function public.set_updated_at();
 
 alter table public.engagements enable row level security;
 
-drop policy if exists "mvp anon can read engagements" on public.engagements;
-create policy "mvp anon can read engagements"
+drop policy if exists "users can read their own engagements" on public.engagements;
+create policy "users can read their own engagements"
 on public.engagements
 for select
-to anon
-using (true);
+to authenticated
+using ((select auth.uid()) is not null and (select auth.uid()) = user_id);
 
-drop policy if exists "mvp anon can insert engagements" on public.engagements;
-create policy "mvp anon can insert engagements"
+drop policy if exists "users can insert their own engagements" on public.engagements;
+create policy "users can insert their own engagements"
 on public.engagements
 for insert
-to anon
-with check (true);
+to authenticated
+with check ((select auth.uid()) is not null and (select auth.uid()) = user_id);
 
-drop policy if exists "mvp anon can update engagements" on public.engagements;
-create policy "mvp anon can update engagements"
+drop policy if exists "users can update their own engagements" on public.engagements;
+create policy "users can update their own engagements"
 on public.engagements
 for update
-to anon
-using (true)
-with check (true);
+to authenticated
+using ((select auth.uid()) is not null and (select auth.uid()) = user_id)
+with check ((select auth.uid()) is not null and (select auth.uid()) = user_id);
 
-grant select, insert, update on public.engagements to anon;
+grant select, insert, update on public.engagements to authenticated;

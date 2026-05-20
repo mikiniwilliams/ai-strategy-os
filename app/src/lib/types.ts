@@ -78,3 +78,9 @@ export interface SavedEngagementSummary {
   updatedAt: string;
   createdAt: string;
 }
+
+export interface AuthStatus {
+  email: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+}

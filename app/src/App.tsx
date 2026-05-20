@@ -12,9 +12,10 @@ import { listSavedEngagements, loadSavedEngagement, upsertSavedEngagement } from
 import { initialState } from "./lib/defaults";
 import { buildExportSummary, buildPrioritizedUseCases, buildReadinessAssessment, buildRoadmap } from "./lib/strategyEngine";
 import { loadState, saveState } from "./lib/storage";
-import { isSupabaseConfigured } from "./lib/supabase";
+import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type {
   AppState,
+  AuthStatus,
   DiscoveryForm,
   Engagement,
   ExportSummary,
@@ -28,7 +29,12 @@ export default function App() {
   const [state, setState] = useState<AppState>(() => loadState());
   const [savedEngagements, setSavedEngagements] = useState<SavedEngagementSummary[]>([]);
   const [isLoadingSavedEngagements, setIsLoadingSavedEngagements] = useState(isSupabaseConfigured);
-  const [syncStatus, setSyncStatus] = useState(isSupabaseConfigured ? "Cloud sync ready." : "Local-only mode.");
+  const [auth, setAuth] = useState<AuthStatus>({
+    email: null,
+    isLoading: isSupabaseConfigured,
+    isAuthenticated: false
+  });
+  const [syncStatus, setSyncStatus] = useState(isSupabaseConfigured ? "Cloud sync available. Sign in to enable it." : "Local-only mode.");
   const hasHydratedRemoteList = useRef(false);
 
   useEffect(() => {
@@ -36,7 +42,43 @@ export default function App() {
   }, [state]);
 
   useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) {
+      return;
+    }
+
+    void supabase.auth.getSession().then(({ data }) => {
+      const email = data.session?.user.email ?? null;
+      setAuth({
+        email,
+        isLoading: false,
+        isAuthenticated: Boolean(data.session?.user)
+      });
+      setSyncStatus(email ? `Signed in as ${email}. Cloud sync enabled.` : "Cloud sync available. Sign in to enable it.");
+    });
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const email = session?.user.email ?? null;
+      setAuth({
+        email,
+        isLoading: false,
+        isAuthenticated: Boolean(session?.user)
+      });
+      setSyncStatus(email ? `Signed in as ${email}. Cloud sync enabled.` : "Cloud sync available. Sign in to enable it.");
+      hasHydratedRemoteList.current = false;
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (!isSupabaseConfigured || hasHydratedRemoteList.current) {
+      return;
+    }
+
+    if (auth.isLoading || !auth.isAuthenticated) {
+      setIsLoadingSavedEngagements(false);
       return;
     }
 
@@ -46,18 +88,18 @@ export default function App() {
     void listSavedEngagements()
       .then((engagements) => {
         setSavedEngagements(engagements);
-        setSyncStatus("Cloud sync connected.");
+        setSyncStatus(`Loaded ${engagements.length} cloud engagement${engagements.length === 1 ? "" : "s"}.`);
       })
       .catch(() => {
-        setSyncStatus("Supabase is configured, but the app could not load saved engagements.");
+        setSyncStatus("Supabase auth is active, but the app could not load your saved engagements.");
       })
       .finally(() => {
         setIsLoadingSavedEngagements(false);
       });
-  }, []);
+  }, [auth.isAuthenticated, auth.isLoading]);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !state.engagement) {
+    if (!isSupabaseConfigured || !state.engagement || !auth.isAuthenticated) {
       return;
     }
 
@@ -76,7 +118,7 @@ export default function App() {
     }, 500);
 
     return () => window.clearTimeout(timeoutId);
-  }, [state]);
+  }, [auth.isAuthenticated, state]);
 
   function updateEngagement(engagement: Engagement) {
     setState((current) => ({ ...current, engagement }));
@@ -152,7 +194,7 @@ export default function App() {
   }
 
   function handleLoadEngagement(id: string) {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !auth.isAuthenticated) {
       return;
     }
 
@@ -171,6 +213,41 @@ export default function App() {
       .catch(() => {
         setSyncStatus("The app could not load that engagement from Supabase.");
       });
+  }
+
+  async function handleSignIn(email: string) {
+    if (!supabase) {
+      return;
+    }
+
+    setAuth((current) => ({ ...current, isLoading: true }));
+    setSyncStatus("Sending Supabase sign-in link…");
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
+    });
+
+    setAuth((current) => ({ ...current, isLoading: false }));
+
+    if (error) {
+      setSyncStatus("Supabase could not send the sign-in link. Check your Auth settings and try again.");
+      throw error;
+    }
+
+    setSyncStatus(`Magic link sent to ${email}.`);
+  }
+
+  async function handleSignOut() {
+    if (!supabase) {
+      return;
+    }
+
+    await supabase.auth.signOut();
+    setSavedEngagements([]);
+    setSyncStatus("Signed out. Local browser mode is still available.");
   }
 
   return (
@@ -192,6 +269,9 @@ export default function App() {
               onLoadEngagement={handleLoadEngagement}
               cloudEnabled={isSupabaseConfigured}
               isLoadingSavedEngagements={isLoadingSavedEngagements}
+              auth={auth}
+              onSignIn={handleSignIn}
+              onSignOut={handleSignOut}
             />
           }
         />
